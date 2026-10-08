@@ -13,7 +13,7 @@ from irsys.indexer import build_index
 from irsys.parser import parse_collection
 from irsys.searcher import Searcher
 from irsys.storage import save_index
-from irsys.tokenizer import tokenize
+from irsys.query import parse_query
 
 DATA_FOLDER = Path("data/reuters21578")
 INDEX_FOLDER = Path("index")
@@ -29,14 +29,18 @@ def run_indexing() -> None:
 
 def run_search() -> None:
     searcher = Searcher(INDEX_FOLDER)
-    print("Type a term to search (empty line to quit).")
+    print("Type a query, e.g. 'cocoa AND brazil' or 'cocoa OR coffee' (empty line to quit).")
     try:
         while query := input("> ").strip():
-            terms = tokenize(query)
-            if len(terms) != 1:
-                print("Please type exactly one term.")
+            try:
+                operator, terms = parse_query(query)
+            except ValueError as error:
+                print(f"Invalid query: {error}")
                 continue
-            results = searcher.postings(terms[0])
+            if operator == "AND":
+                results = searcher.search_and(terms)
+            else:
+                results = searcher.search_or(terms)
             print(f"{len(results)} documents found")
             if results:
                 print(results)

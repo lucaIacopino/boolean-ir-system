@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from irsys.storage import POSTINGS_FILE, load_dictionary, read_postings
+from irsys.boolean import intersect, union
 
 
 class Searcher:
@@ -19,5 +20,21 @@ class Searcher:
         df, offset = self.dictionary[term]
         return read_postings(self.postings_file, df, offset)
 
+    def search_and(self, terms: list[str]) -> list[int]:
+        """Conjunctive query: intersect the postings lists of all terms."""
+        result = self.postings(terms[0])
+        for term in terms[1:]:
+            if not result:  # empty intersection: no need to go on
+                break
+            result = intersect(result, self.postings(term))
+        return result
+
+    def search_or(self, terms: list[str]) -> list[int]:
+        """Disjunctive query: unite the postings lists of all terms."""
+        result: list[int] = []
+        for term in terms:
+            result = union(result, self.postings(term))
+        return result
+    
     def close(self) -> None:
         self.postings_file.close()
