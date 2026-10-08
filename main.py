@@ -14,6 +14,7 @@ from irsys.parser import parse_collection
 from irsys.searcher import Searcher
 from irsys.storage import save_index
 from irsys.query import parse_query
+from irsys.spelling import suggest
 
 DATA_FOLDER = Path("data/reuters21578")
 INDEX_FOLDER = Path("index")
@@ -44,6 +45,13 @@ def run_search() -> None:
             print(f"{len(results)} documents found")
             if results:
                 print(results)
+            for term in terms:
+                if term not in searcher.dictionary:
+                    suggestions = suggest(term, searcher.dictionary)
+                    if suggestions:
+                        print(f"'{term}' not found. Did you mean: {', '.join(suggestions)}?")
+                    else:
+                        print(f"'{term}' not found.")
     except (EOFError, KeyboardInterrupt):
         print()
     finally:
