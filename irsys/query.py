@@ -9,6 +9,7 @@ searched as normal terms. AND and OR cannot be mixed in the same query.
 """
 
 from irsys.tokenizer import tokenize
+from irsys.stoplist import STOP_WORDS
 
 OPERATORS = {"AND", "OR"}
 
@@ -33,5 +34,8 @@ def parse_query(query: str) -> tuple[str, list[str]]:
             raise ValueError(f"'{raw}' is not a valid term")
         terms.append(tokens[0])
 
+    terms = [term for term in terms if term not in STOP_WORDS]  # not in the index
+    if not terms:
+        raise ValueError("the query contains only stop words")
     operator = operators.pop() if operators else "AND"
     return operator, terms
