@@ -20,6 +20,10 @@ class Searcher:
         df, offset = self.dictionary[term]
         return read_postings(self.postings_file, df, offset)
 
+    def document_frequency(self, term: str) -> int:
+        """Number of documents containing 'term' (0 if not in the index)."""
+        return self.dictionary[term][0] if term in self.dictionary else 0
+    
     def search_and(self, terms: list[str]) -> list[int]:
         """Conjunctive query: intersect the postings lists of all terms."""
         result = self.postings(terms[0])
